@@ -2,7 +2,7 @@ from utils import read_file
 
 
 def main():
-    lines = read_file("input")
+    lines = read_file(__file__, "input")
 
     total = 0
     for line in lines:

@@ -39,19 +39,29 @@ class Game:
                 return False
         return True
 
+    def get_power(self):
+        r = 0
+        g = 0
+        b = 0
+        for throw in self.throws:
+            r = max(r, throw.red)
+            g = max(g, throw.green)
+            b = max(b, throw.blue)
 
-data = read_file(__file__, "input")
+        return r*g*b
+
+
+data = read_file(__file__, "input_1")
 games: List[Game] = [Game(line) for line in data]
 
 value = 0
 for game in games:
     args = {"r": 12, "g": 13, "b": 14}
     possible = game.is_possible(**args)
-    print(game.description)
-    for throw in game.throws:
-        print(throw, throw.is_possible(**args))
-    print(f"possible: {possible}")
     if possible:
         value += game.id
 
-print(value)
+print(f"Part 1: {value}")
+
+print(f"Part 2: {sum(game.get_power() for game in games)}")
+
