@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List
+from typing import List, Tuple
 
 from utils import read_file
 
@@ -17,7 +17,7 @@ class Card:
     def clear_numbers(self, numbers: str) -> str:
         return numbers.lstrip(" ").rstrip(" ").replace("  ", " ")
 
-    def get_points(self) -> int:
+    def get_points(self) -> Tuple[int, int]:
         good_numbers = []  # maybe useful for part 2
         points = 0
         for number in self.our_numbers:
@@ -28,17 +28,31 @@ class Card:
                     points *= 2
                 good_numbers.append(number)
 
-        return points
+        return points, len(good_numbers)
+
 
 def part_1(data: List[Card]):
     total = 0
     for card in data:
-        total += card.get_points()
+        total += card.get_points()[0]
 
     print(f"Part 1: {total}")
 
-def part_2(schema: List[Card]):
-    pass
+
+def part_2(data: List[Card]):
+    """
+    naive brute force, takes like 2 minutes to run, amazing skills.
+    Could just do the maths and then it's probably about a second.
+    :param data:
+    :return:
+    """
+    new_cards = data.copy()
+    for n, card in enumerate(new_cards):
+        to_create = card.get_points()[1]  # number of cards to create after this one
+        for j in range(to_create):
+            new_cards.append(data[card.id+j])
+
+    print(f"Part 2: {len(new_cards)}")
 
 
 entry = read_file(__file__, "input")
