@@ -44,11 +44,7 @@ def part_1(data: Data):
 
     print(step)
 
-def part_2(data: Data):
-    pass
 
-
-entry = read_file(__file__, "input")
+entry = read_file(__file__, "test")
 container = Data(entry)
 part_1(container)
-part_2(container)
