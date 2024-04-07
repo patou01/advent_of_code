@@ -12,11 +12,18 @@ class ShortMap:
         self.length = split[2]
 
     def can_map(self, thing: int):
-        return self.source <= thing <= self.source + self.length
+        return self.source <= thing < self.source + self.length
 
     def map(self, thing: int) -> int:
         if self.can_map(thing):
             return self.destination + (thing - self.source)
+
+    def revert_map(self, thing: int) -> int:
+        if self.can_revert_map(thing):
+            return self.source + (thing - self.destination)
+
+    def can_revert_map(self, thing: int) -> bool:
+        return self.destination <= thing < self.destination + self.length
 
 
 class Map:
@@ -27,6 +34,12 @@ class Map:
         for sub_map in self.sub_maps:
             if sub_map.can_map(value):
                 return sub_map.map(value)
+        return value
+
+    def revert_map(self, value: int):
+        for sub_map in self.sub_maps:
+            if sub_map.can_revert_map(value):
+                return sub_map.revert_map(value)
         return value
 
 
@@ -42,10 +55,9 @@ class DataContainer:
 
     def __init__(self, descriptor: List[str]):
         self.descriptor = descriptor
-        self.seeds = [int(seed) for seed in descriptor[0].split(":")[1].lstrip(" ").split(" ")]
-
+        split_seeds = descriptor[0].split(":")[1].lstrip(" ").split(" ")
+        self.seeds = [int(seed) for seed in split_seeds]
         mappings = self.get_mapping_locations()
-        print(len(mappings))
         self.seed_to_soil = self._parse_map(mappings[0])
         self.soil_to_fertilizer = self._parse_map(mappings[1])
         self.fertilizer_to_water = self._parse_map(mappings[2])
@@ -53,8 +65,6 @@ class DataContainer:
         self.light_to_temp = self._parse_map(mappings[4])
         self.temp_to_hum = self._parse_map(mappings[5])
         self.hum_to_loc = self._parse_map(mappings[6])
-
-        print(self.seed_to_soil.map(53))
 
     def get_mapping_locations(self):
         maps = []
@@ -93,6 +103,21 @@ class DataContainer:
                     )
                 )
 
+    def map_to_seed(self, location: int):
+        return self.seed_to_soil.revert_map(
+                    self.soil_to_fertilizer.revert_map(
+                        self.fertilizer_to_water.revert_map(
+                            self.water_to_light.revert_map(
+                                self.light_to_temp.revert_map(
+                                    self.temp_to_hum.revert_map(
+                                        self.hum_to_loc.revert_map(location)
+                                    )
+                                )
+                            )
+                        )
+                    )
+                )
+
 
 def part_1(data: DataContainer):
     locations = [data.map_to_location(seed) for seed in data.seeds]
@@ -100,7 +125,26 @@ def part_1(data: DataContainer):
 
 
 def part_2(data: DataContainer):
-    pass
+    """
+    For part 2, we reverse the mapping. Start searching from location 0 to see if has a seed in our ranges.
+    Then we increment. As soon as we've found one, we have the lowest location possible for one of our seeds.
+    """
+    i = 0
+    ranges = []
+    for n, seed in enumerate(data.seeds):
+        if n % 2 == 0:
+            ranges.append(range(seed, seed + data.seeds[n+1]))
+    found = False
+    while not found:
+        seed = data.map_to_seed(i)
+        i += 1
+        for item in ranges:
+            if not found:
+                if seed in item:
+                    found = True
+                    break
+
+    print(f"part 2: {i-1}")
 
 
 entry = read_file(__file__, "input")
